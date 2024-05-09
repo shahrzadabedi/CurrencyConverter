@@ -30,8 +30,13 @@ public class CurrencyConverterService : ICurrencyConverter
             if (cacheValue.HasValue)
                 return cacheValue.Value * amount;
 
-            return _shortestPathProvider.FindShortestPathWithConversionRate(fromCurrency,
-                toCurrency).ConvertedValue!.Value * amount;
+            var exchangeRate =  _shortestPathProvider.FindShortestPathWithConversionRate(fromCurrency,
+                toCurrency).ConvertedValue!.Value;
+
+            _cacheProvider.SetEntry(CacheDataType.ConversionRate, cacheId, exchangeRate);
+
+            return exchangeRate*amount;
+
         }
         catch
         {

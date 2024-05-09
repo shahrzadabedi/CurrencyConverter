@@ -53,6 +53,7 @@ public class BfsShortestPathProvider : IShortestPathProvider
     public void ResetVisited()
     {
         _vertices.ForEach(v=> v.IsVisited= false);
+        _costs.Clear();
     }
 
     public void CalculateCosts(string source)
