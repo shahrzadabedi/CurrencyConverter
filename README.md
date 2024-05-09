@@ -1,11 +1,13 @@
 In the Currency Converter project, we have an interface that lets us configure, save and clear exchange rates:
 
-public interface ICurrencyConverter{
+public interface ICurrencyConverter
+{
     void ClearConfiguration();
 
     void UpdateConfiguration(IEnumerable<Tuple<string, string, double>> conversionRates);
 
-    double Convert(string fromCurrency, string toCurrency, double amount);}
+    double Convert(string fromCurrency, string toCurrency, double amount);
+    }
 
 I used BFS algorithm to traverse the graph. To represent the graph, I make an adjacency list for each vertex using BuildAdjacencyLists() method in 
 BfsShortestPathProvider class that implements IShortestPathProvider interface.
@@ -17,5 +19,6 @@ After the whole graph is traversed it then uses this dictionary and starts from 
 
 2. ClearConfiguration method:
    this method clears all adjustments
+
 3.UpdateConfiguration method:
    This method sets up the adjacency lists and the list of vertices for later traversal.
