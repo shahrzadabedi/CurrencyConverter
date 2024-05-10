@@ -1,4 +1,4 @@
-In the Currency Converter project, we have an interface that lets us configure, save and clear exchange rates:
+In the Currency Converter project, we have an interface that lets us configure, convert and clear exchange rates:
 ```
 public interface ICurrencyConverter
 {
