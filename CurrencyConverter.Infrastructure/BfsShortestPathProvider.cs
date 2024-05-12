@@ -54,7 +54,7 @@ public class BfsShortestPathProvider : IShortestPathProvider
         }
     }
 
-    public void ResetVisited() => _vertices.ForEach(v=> v.IsVisited= false);
+    public void ResetVisited() => _vertices.ForEach(v => v.IsVisited = false);
 
     public ConcurrentDictionary<string, Tuple<string, int, int?>> CalculateCosts(string source)
     {
@@ -93,7 +93,16 @@ public class BfsShortestPathProvider : IShortestPathProvider
         if (!_vertices.Select(v => v.Title).Contains(destination))
             throw new Exception("Destination symbol is not valid");
 
-        var costs = !_sourceShortestPathMatrices.ContainsKey(source) ? CalculateCosts(source) : _sourceShortestPathMatrices[source];
+        ConcurrentDictionary<string, Tuple<string, int, int?>> costs;
+
+        if (!_sourceShortestPathMatrices.ContainsKey(source))
+        {
+            costs = CalculateCosts(source);
+
+            _sourceShortestPathMatrices[source] = costs;
+        }
+        else
+            costs = _sourceShortestPathMatrices[source];
 
         var reversePath = new List<string> { destination };
 
@@ -127,7 +136,16 @@ public class BfsShortestPathProvider : IShortestPathProvider
         if (!_vertices.Select(v => v.Title).Contains(destination))
             throw new Exception("Destination symbol is not valid");
 
-        var costs = !_sourceShortestPathMatrices.ContainsKey(source) ? CalculateCosts(source) : _sourceShortestPathMatrices[source];
+        ConcurrentDictionary<string, Tuple<string, int, int?>> costs;
+
+        if (!_sourceShortestPathMatrices.ContainsKey(source))
+        {
+            costs = CalculateCosts(source);
+
+            _sourceShortestPathMatrices[source] = costs;
+        }
+        else
+            costs = _sourceShortestPathMatrices[source];
 
         var reversePath = new List<string> { destination };
 
@@ -244,7 +262,7 @@ public class BfsShortestPathProvider : IShortestPathProvider
                                 .ToList();
     }
 
-    private void VisitVertex(string currentVertex , ConcurrentDictionary<string, Tuple<string, int, int?>> costs)
+    private void VisitVertex(string currentVertex, ConcurrentDictionary<string, Tuple<string, int, int?>> costs)
     {
         foreach (var neighbor in _adjacencyLists[currentVertex])
         {
