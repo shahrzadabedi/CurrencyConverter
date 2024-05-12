@@ -1,4 +1,6 @@
-﻿namespace CurrencyConverter.Domain.Contracts;
+﻿using System.Collections.Concurrent;
+
+namespace CurrencyConverter.Domain.Contracts;
 
 
 public class ShortestPath
@@ -16,7 +18,7 @@ public interface IShortestPathProvider
 
     void UpdateConfiguration(IEnumerable<Tuple<string, string, double>> conversionRates);
 
-    void CalculateCosts(string source);
+    ConcurrentDictionary<string, Tuple<string, int, int?>> CalculateCosts(string source);
 
     ShortestPath FindShortestPath(string source, string destination);
 

@@ -16,8 +16,8 @@ public class ClearConfigurationTests
     public void WhenClearConfiguration_ShouldSucceed()
     {
         var memoryCache = new MemoryCache(new MemoryCacheOptions());
-        var cacheSettings = new CacheSettings { SlidingExpirationInMinutes = 15 };
-        var currencyConverter = new CurrencyConverterService(new BfsShortestPathProvider(), new CacheProvider(memoryCache,cacheSettings));
+        var cacheSettings = new CacheSettings { SlidingExpirationInMinutes = 15 , Enabled = false};
+        var currencyConverter = new CurrencyConverterService(new BfsShortestPathProvider(), cacheSettings, new CacheProvider(memoryCache,cacheSettings));
 
         Tuple<string, string, double>[] conversionValues =
         {
@@ -39,4 +39,3 @@ public class ClearConfigurationTests
         Assert.Throws<NoConversionAvailableException>(() => currencyConverter.Convert("0", "3", 5));
     }
 }
-

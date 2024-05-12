@@ -2,6 +2,7 @@
 using CurrencyConverter.Domain;
 using CurrencyConverter.Domain.Contracts;
 using CurrencyConverter.Infrastructure;
+using CurrencyConverter.Infrastructure.Models;
 
 namespace CurrencyConverter.Application.Currencies;
 
@@ -9,10 +10,12 @@ public class CurrencyConverterService : ICurrencyConverter
 {
     private readonly IShortestPathProvider _shortestPathProvider;
     private readonly ICacheProvider _cacheProvider;
+    private readonly CacheSettings _cacheSettings;
 
-    public CurrencyConverterService(IShortestPathProvider shortestPathProvider, ICacheProvider cacheProvider)
+    public CurrencyConverterService(IShortestPathProvider shortestPathProvider,CacheSettings cacheSettings, ICacheProvider cacheProvider)
     {
         _shortestPathProvider = shortestPathProvider;
+        _cacheSettings = cacheSettings;
         _cacheProvider = cacheProvider;
     }
 
@@ -25,7 +28,7 @@ public class CurrencyConverterService : ICurrencyConverter
         try
         {
             var cacheId = $"{fromCurrency}_{toCurrency}";
-            var cacheValue = _cacheProvider.GetEntry<double?>(CacheDataType.ConversionRate, cacheId);
+            var cacheValue = _cacheSettings.Enabled? _cacheProvider.GetEntry<double?>(CacheDataType.ConversionRate, cacheId):null;
 
             if (cacheValue.HasValue)
                 return cacheValue.Value * amount;
@@ -36,7 +39,6 @@ public class CurrencyConverterService : ICurrencyConverter
             _cacheProvider.SetEntry(CacheDataType.ConversionRate, cacheId, exchangeRate);
 
             return exchangeRate*amount;
-
         }
         catch
         {

@@ -17,8 +17,8 @@ public class ConvertTests
     public void GivenHaveAGraph_WhenDistanceBetweenTwoAlreadyDefinedCurrencies_ShouldSucceed()
     {
         var memoryCache = new MemoryCache(new MemoryCacheOptions());
-        var cacheSettings = new CacheSettings { SlidingExpirationInMinutes = 15 };
-        var currencyConverter = new CurrencyConverterService(new BfsShortestPathProvider(), new CacheProvider(memoryCache, cacheSettings));
+        var cacheSettings = new CacheSettings { SlidingExpirationInMinutes = 15, Enabled = false };
+        var currencyConverter = new CurrencyConverterService(new BfsShortestPathProvider(), cacheSettings, new CacheProvider(memoryCache, cacheSettings));
 
         Tuple<string, string, double>[] conversionValues =
         {
@@ -40,8 +40,8 @@ public class ConvertTests
     public void GivenHaveAGraph_WhenDistanceBetweenCurrenciesIsTwo_ShouldSucceed()
     {
         var memoryCache = new MemoryCache(new MemoryCacheOptions());
-        var cacheSettings = new CacheSettings { SlidingExpirationInMinutes = 15 };
-        var currencyConverter = new CurrencyConverterService(new BfsShortestPathProvider(), new CacheProvider(memoryCache, cacheSettings));
+        var cacheSettings = new CacheSettings { SlidingExpirationInMinutes = 15, Enabled = false };
+        var currencyConverter = new CurrencyConverterService(new BfsShortestPathProvider(), cacheSettings, new CacheProvider(memoryCache, cacheSettings));
 
         Tuple<string, string, double>[] conversionValues =
         {
@@ -63,8 +63,8 @@ public class ConvertTests
     public void GivenHaveAGraph_WhenThereIsNoPathBetweenCurrencies_ShouldFail()
     {
         var memoryCache = new MemoryCache(new MemoryCacheOptions());
-        var cacheSettings = new CacheSettings { SlidingExpirationInMinutes = 15 };
-        var currencyConverter = new CurrencyConverterService(new BfsShortestPathProvider(), new CacheProvider(memoryCache, cacheSettings));
+        var cacheSettings = new CacheSettings { SlidingExpirationInMinutes = 15, Enabled = false };
+        var currencyConverter = new CurrencyConverterService(new BfsShortestPathProvider(), cacheSettings, new CacheProvider(memoryCache, cacheSettings));
 
         Tuple<string, string, double>[] conversionValues =
         {
@@ -87,8 +87,8 @@ public class ConvertTests
     public void GivenAGraph_WhenSourceCurrencyDoesNotExist_ShouldFail()
     {
         var memoryCache = new MemoryCache(new MemoryCacheOptions());
-        var cacheSettings = new CacheSettings { SlidingExpirationInMinutes = 15 };
-        var currencyConverter = new CurrencyConverterService(new BfsShortestPathProvider(), new CacheProvider(memoryCache, cacheSettings));
+        var cacheSettings = new CacheSettings { SlidingExpirationInMinutes = 15, Enabled = false };
+        var currencyConverter = new CurrencyConverterService(new BfsShortestPathProvider(), cacheSettings, new CacheProvider(memoryCache, cacheSettings));
 
         Tuple<string, string, double>[] conversionValues =
         {
@@ -110,8 +110,8 @@ public class ConvertTests
     public void GivenAGraph_WhenDestinationCurrencyDoesNotExist_ShouldFail()
     {
         var memoryCache = new MemoryCache(new MemoryCacheOptions());
-        var cacheSettings = new CacheSettings { SlidingExpirationInMinutes = 15 };
-        var currencyConverter = new CurrencyConverterService(new BfsShortestPathProvider(), new CacheProvider(memoryCache, cacheSettings));
+        var cacheSettings = new CacheSettings { SlidingExpirationInMinutes = 15, Enabled = false };
+        var currencyConverter = new CurrencyConverterService(new BfsShortestPathProvider(), cacheSettings, new CacheProvider(memoryCache, cacheSettings));
 
         Tuple<string, string, double>[] conversionValues =
         {
@@ -129,4 +129,3 @@ public class ConvertTests
         Assert.Throws<NoConversionAvailableException>(() => currencyConverter.Convert("0", "6", 5));
     }
 }
-

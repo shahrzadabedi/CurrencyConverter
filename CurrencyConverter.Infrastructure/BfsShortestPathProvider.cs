@@ -23,7 +23,8 @@ public class BfsShortestPathProvider : IShortestPathProvider
 
     private ConcurrentDictionary<string, List<Calculate>> _adjacencyLists = new();
 
-    private readonly ConcurrentDictionary<string, Tuple<string, int, int?>> _costs = new();
+    private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, Tuple<string, int, int?>>>
+        _sourceShortestPathMatrices = new();
 
     private List<Vertex> _vertices = new();
 
@@ -34,8 +35,11 @@ public class BfsShortestPathProvider : IShortestPathProvider
         lock (_edges)
         {
             _edges.Clear();
+
             _adjacencyLists.Clear();
-            _costs.Clear();
+
+            _sourceShortestPathMatrices.Clear();
+
             _vertices.Clear();
         }
     }
@@ -50,15 +54,12 @@ public class BfsShortestPathProvider : IShortestPathProvider
         }
     }
 
-    public void ResetVisited()
-    {
-        _vertices.ForEach(v=> v.IsVisited= false);
-        _costs.Clear();
-    }
+    public void ResetVisited() => _vertices.ForEach(v=> v.IsVisited= false);
 
-    public void CalculateCosts(string source)
+    public ConcurrentDictionary<string, Tuple<string, int, int?>> CalculateCosts(string source)
     {
-       
+        ConcurrentDictionary<string, Tuple<string, int, int?>> costs = new();
+
         lock (_edges)
         {
             ResetVisited();
@@ -66,19 +67,21 @@ public class BfsShortestPathProvider : IShortestPathProvider
             var findSourceVertex = _vertices.FirstOrDefault(v => v.Title == source && !v.IsVisited);
             findSourceVertex!.IsVisited = true;
 
-            VisitVertex(source);
+            VisitVertex(source, costs);
 
             while (_queue.Count != 0)
             {
                 var currentVertex = _queue!.Dequeue();
 
-                _costs[currentVertex] =
-                    new Tuple<string, int, int?>(_costs[currentVertex].Item1, _costs[currentVertex].Item2,
-                        _costs[currentVertex].Item2 + 1);
+                costs[currentVertex] =
+                    new Tuple<string, int, int?>(costs[currentVertex].Item1, costs[currentVertex].Item2,
+                        costs[currentVertex].Item2 + 1);
 
-                VisitVertex(currentVertex);
+                VisitVertex(currentVertex, costs);
             }
         }
+
+        return costs;
 
     }
 
@@ -90,19 +93,19 @@ public class BfsShortestPathProvider : IShortestPathProvider
         if (!_vertices.Select(v => v.Title).Contains(destination))
             throw new Exception("Destination symbol is not valid");
 
-        CalculateCosts(source);
+        var costs = !_sourceShortestPathMatrices.ContainsKey(source) ? CalculateCosts(source) : _sourceShortestPathMatrices[source];
 
         var reversePath = new List<string> { destination };
 
-        if (!_costs.ContainsKey(destination))
+        if (!costs.ContainsKey(destination))
             throw new Exception("There are no paths from source node to this destination.");
 
-        var parent = _costs[destination].Item1;
+        var parent = costs[destination].Item1;
         reversePath.Add(parent);
 
-        while (_costs.ContainsKey(parent))
+        while (costs.ContainsKey(parent))
         {
-            parent = _costs[parent].Item1;
+            parent = costs[parent].Item1;
 
             reversePath.Add(parent);
         }
@@ -124,23 +127,23 @@ public class BfsShortestPathProvider : IShortestPathProvider
         if (!_vertices.Select(v => v.Title).Contains(destination))
             throw new Exception("Destination symbol is not valid");
 
-        CalculateCosts(source);
+        var costs = !_sourceShortestPathMatrices.ContainsKey(source) ? CalculateCosts(source) : _sourceShortestPathMatrices[source];
 
         var reversePath = new List<string> { destination };
 
-        if (!_costs.ContainsKey(destination))
+        if (!costs.ContainsKey(destination))
             throw new Exception("There are no paths from source node to this destination.");
 
-        var parent = _costs[destination].Item1;
+        var parent = costs[destination].Item1;
         reversePath.Add(parent);
 
         var conversionValue = _adjacencyLists[destination]
             .FirstOrDefault(a => a.Title == parent)!.ConversionValue;
 
-        while (_costs.ContainsKey(parent))
+        while (costs.ContainsKey(parent))
         {
             var copy = parent;
-            parent = _costs[parent].Item1;
+            parent = costs[parent].Item1;
             conversionValue *= _adjacencyLists[copy]
                 .FirstOrDefault(a => a.Title == parent)!.ConversionValue;
             reversePath.Add(parent);
@@ -163,7 +166,7 @@ public class BfsShortestPathProvider : IShortestPathProvider
 
         foreach (var tuple in _edges)
         {
-            string comparableItem = tuple.Item1;
+            var comparableItem = tuple.Item1;
             if (!distinctVertices.Contains(tuple.Item1))
             {
                 distinctVertices.Add(comparableItem);
@@ -182,9 +185,9 @@ public class BfsShortestPathProvider : IShortestPathProvider
             {
                 foreach (var tuple2 in _edges)
                 {
-                    if (tuple2 != tuple && tuple2.Item1 == comparableItem)
+                    if (!Equals(tuple2, tuple) && tuple2.Item1 == comparableItem)
                         adjacencyList.Add(new Calculate() { Title = tuple2.Item2, ConversionValue = tuple2.Item3 });
-                    else if (tuple2 != tuple && tuple2.Item2 == comparableItem)
+                    else if (!Equals(tuple2, tuple) && tuple2.Item2 == comparableItem)
                         adjacencyList.Add(new Calculate()
                         {
                             Title = tuple2.Item1,
@@ -241,20 +244,20 @@ public class BfsShortestPathProvider : IShortestPathProvider
                                 .ToList();
     }
 
-    private void VisitVertex(string currentVertex)
+    private void VisitVertex(string currentVertex , ConcurrentDictionary<string, Tuple<string, int, int?>> costs)
     {
         foreach (var neighbor in _adjacencyLists[currentVertex])
         {
             var findVertex = _vertices.FirstOrDefault(v => v.Title == neighbor.Title && !v.IsVisited);
             if (findVertex != null)
             {
-                if (!_costs.ContainsKey(neighbor.Title))
+                if (!costs.ContainsKey(neighbor.Title))
                 {
-                    if (_costs.ContainsKey(currentVertex))
-                        _costs[neighbor.Title] =
-                            new Tuple<string, int, int?>(currentVertex, _costs[currentVertex].Item3!.Value, null);
+                    if (costs.ContainsKey(currentVertex))
+                        costs[neighbor.Title] =
+                            new Tuple<string, int, int?>(currentVertex, costs[currentVertex].Item3!.Value, null);
                     else
-                        _costs[neighbor.Title] = new Tuple<string, int, int?>(currentVertex, 0, 1);
+                        costs[neighbor.Title] = new Tuple<string, int, int?>(currentVertex, 0, 1);
                 }
 
                 _queue.Enqueue(neighbor.Title);
@@ -264,5 +267,3 @@ public class BfsShortestPathProvider : IShortestPathProvider
         }
     }
 }
-
-
